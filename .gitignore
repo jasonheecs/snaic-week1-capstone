@@ -1,0 +1,96 @@
+# ---- Byte-compiled / optimized / cache ----
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ---- Virtual environments ----
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# ---- Environment variables / secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Jupyter Notebook ----
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/*
+profile_default/
+ipython_config.py
+
+# ---- IPython ----
+.python-version
+
+# ---- Distribution / packaging ----
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+develop-eggs/
+sdist/
+wheels/
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ---- Testing / coverage ----
+.pytest_cache/
+.cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# ---- Type checkers / linters ----
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pyre/
+.pytype/
+
+# ---- VS Code ----
+.vscode/
+*.code-workspace
+
+# ---- Editors / IDEs ----
+.idea/
+*.swp
+*.swo
+
+# ---- OS files ----
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ---- Data & model artifacts ----
+# Uncomment / adjust to keep large or generated files out of git.
+# Many ML courses prefer you NOT commit raw datasets or trained models.
+# data/
+# *.csv
+# *.tsv
+# *.parquet
+# *.h5
+# *.hdf5
+# *.pkl
+# *.joblib
+# models/
+# checkpoints/
+
+# ---- Logs & temp ----
+*.log
+logs/
+*.tmp
