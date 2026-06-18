@@ -4,6 +4,8 @@ import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline
 
+from preprocessor import build_pipeline
+
 
 class ModelSelector:
     """Evaluates a registry of candidate models and surfaces the best one.
@@ -28,6 +30,9 @@ class ModelSelector:
         # "XGBoost": XGBClassifier(...),
         # "LightGBM": LGBMClassifier(...),
     }
+
+    def __init__(self) -> None:
+        self._champion: str | None = None
 
     def evaluate_all(self, X: pd.DataFrame, y: pd.Series, cv: int = 5) -> pd.DataFrame:
         """Cross-validate every candidate in CANDIDATES and return a scores table.
@@ -64,4 +69,6 @@ class ModelSelector:
         ------
         RuntimeError if evaluate_all() has not been called yet.
         """
-        raise NotImplementedError
+        if self._champion is None:
+            raise RuntimeError("Call evaluate_all() before best().")
+        return build_pipeline(self.CANDIDATES[self._champion])
