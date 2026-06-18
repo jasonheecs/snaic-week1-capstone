@@ -31,17 +31,9 @@ TEST_SIZE = 0.2
 
 
 def load_data(path: str) -> pd.DataFrame:
-    """Read a CSV from disk and return it as a DataFrame.
+    """Read a CSV from disk and return it as a DataFrame."""
 
-    Parameters
-    ----------
-    path : path to the CSV file
-
-    Returns
-    -------
-    pd.DataFrame — raw, unmodified rows from the file
-    """
-    raise NotImplementedError
+    return pd.read_csv(path)
 
 
 def evaluate(pipeline, X_test: pd.DataFrame, y_test: pd.Series) -> dict[str, float]:
