@@ -23,7 +23,7 @@ profile_default/
 ipython_config.py
 
 # ---- IPython ----
-.python-version
+# .python-version
 
 # ---- Distribution / packaging ----
 build/
