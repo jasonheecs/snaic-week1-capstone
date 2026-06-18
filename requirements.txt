@@ -1,0 +1,42 @@
+# =============================================================================
+# Python dependencies for Predict_Customer_Churn.ipynb
+# =============================================================================
+# Recreate a fresh virtual environment from scratch:
+#
+#   Windows (PowerShell):
+#     python -m venv .venv
+#     .venv/Scripts/python.exe -m pip install --upgrade pip setuptools wheel
+#     .venv/Scripts/python.exe -m pip install -r requirements.txt
+#
+#   macOS / Linux:
+#     python3 -m venv .venv
+#     source .venv/bin/activate
+#     pip install --upgrade pip
+#     pip install -r requirements.txt
+#
+# Tip: after installing, run `pip freeze > requirements.lock.txt` to capture the
+# exact resolved versions for fully reproducible environments.
+# =============================================================================
+
+# --- Core data handling ---
+numpy
+pandas
+
+# --- Visualisation ---
+matplotlib
+seaborn
+
+# --- Machine learning ---
+scikit-learn          # pipelines, metrics, cross-validation, HistGradientBoosting
+lightgbm              # fast gradient boosting (primary tuned model)
+xgboost               # gradient boosting (base model in the ensemble)
+
+# --- Hyperparameter optimisation ---
+optuna                # Bayesian search over LightGBM hyperparameters
+
+# --- Model interpretability ---
+shap                  # SHAP values for explaining individual predictions
+
+# --- Notebook environment (needed only to run the .ipynb itself) ---
+jupyterlab
+ipykernel
