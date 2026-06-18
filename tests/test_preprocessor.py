@@ -29,8 +29,10 @@ CATEGORIES_PER_MULTICLASS = 3
 #     "cat1", or "cat2", cycling row by row. So every such column has exactly 3
 #     possible values.
 #   - Binary columns (e.g. gender, Partner): alternate "Yes" / "No" by row.
+#     SeniorCitizen is also binary, but mirrors the cleaner's bool output
+#     (True/False) rather than Yes/No.
 #   - Numeric columns: simple increasing/cycling numbers (tenure 0-11,
-#     MonthlyCharges 20-55, TotalCharges 100-330, SeniorCitizen 0/1).
+#     MonthlyCharges 20-55, TotalCharges 100-330).
 @pytest.fixture
 def features():
     """A small, deterministic feature frame with every column build_pipeline expects."""
@@ -42,7 +44,9 @@ def features():
     rows["tenure"] = [i % 12 for i in range(N_ROWS)]
     rows["MonthlyCharges"] = [20.0 + (i % 8) * 5 for i in range(N_ROWS)]
     rows["TotalCharges"] = [100.0 + i * 10 for i in range(N_ROWS)]
-    rows["SeniorCitizen"] = [i % 2 for i in range(N_ROWS)]
+    # SeniorCitizen is a binary column; mirror the cleaner's bool output, which
+    # overrides the Yes/No default the BINARY_COLS loop set above.
+    rows["SeniorCitizen"] = [bool(i % 2) for i in range(N_ROWS)]
     return pd.DataFrame(rows)
 
 

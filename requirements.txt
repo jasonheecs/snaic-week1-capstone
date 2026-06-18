@@ -41,3 +41,6 @@ shap                  # SHAP values for explaining individual predictions
 # --- Notebook environment (needed only to run the .ipynb itself) ---
 jupyterlab
 ipykernel
+
+# --- Testing ---
+pytest                # unit tests in tests/
