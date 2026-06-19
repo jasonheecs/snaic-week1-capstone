@@ -6,7 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_validate
 from sklearn.model_selection import cross_validate
 from sklearn.pipeline import Pipeline
-
+from xgboost import XGBClassifier
 from preprocessor import build_pipeline
 
 
@@ -22,7 +22,8 @@ class ModelSelector:
     pipeline.fit(X_train, y_train)
     """
 
-    # Registry of candidate models — three distinct algorithmic families.
+    # Registry of candidate models — four candidates spanning linear, bagging,
+    # and boosting families (two boosting implementations).
     # Keys are display names; values are unfitted estimator instances.
     CANDIDATES: dict[str, object] = {
         # Family 1 — Linear: draws a straight decision boundary.
@@ -36,6 +37,13 @@ class ModelSelector:
         # Family 3 — Boosting: builds trees sequentially, each fixing the last.
         "GradientBoosting": GradientBoostingClassifier(
             n_estimators=200, random_state=42
+        ),
+        # Family 3 (alt) — Boosting (histogram-based)
+        "XGBoost": XGBClassifier(
+            n_estimators=200,
+            random_state=42,
+            eval_metric="logloss",
+            n_jobs=-1,
         ),
     }
 
