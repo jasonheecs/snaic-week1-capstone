@@ -19,13 +19,14 @@ from __future__ import annotations
 import argparse
 
 import pandas as pd
+from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
 
 from data_cleaner import DataCleaner
 from model_selector import ModelSelector
 
 TRAIN_PATH = "data/train.csv"
-TEST_PATH = "data/test.csv"
 RANDOM_STATE = 42
 TEST_SIZE = 0.2
 
@@ -36,7 +37,7 @@ def load_data(path: str) -> pd.DataFrame:
     return pd.read_csv(path)
 
 
-def evaluate(pipeline, X_test: pd.DataFrame, y_test: pd.Series) -> dict[str, float]:
+def evaluate(pipeline: Pipeline, X_test: pd.DataFrame, y_test: pd.Series) -> dict[str, float]:
     """Score a fitted pipeline on a held-out test set.
 
     Metrics: ROC-AUC and F1 (threshold = 0.5 by default).
@@ -51,18 +52,43 @@ def evaluate(pipeline, X_test: pd.DataFrame, y_test: pd.Series) -> dict[str, flo
     -------
     dict with keys "roc_auc" and "f1"
     """
-    raise NotImplementedError
+    y_prob = pipeline.predict_proba(X_test)[:, 1]
+    y_pred = pipeline.predict(X_test)
+    return {
+        "roc_auc": float(roc_auc_score(y_test, y_prob)),
+        "f1": float(f1_score(y_test, y_pred)),
+    }
 
 
-def report(scores_table: pd.DataFrame, final_metrics: dict[str, float]) -> None:
+def report(
+    scores_table: pd.DataFrame,
+    final_metrics: dict[str, float],
+    champion: str,
+    out_path: str = "results.txt",
+) -> None:
     """Print a formatted summary of cross-validation results and final test scores.
+
+    The same summary is also written to ``out_path`` so the run is persisted.
 
     Parameters
     ----------
     scores_table   : DataFrame returned by ModelSelector.evaluate_all()
     final_metrics  : dict returned by evaluate()
+    champion       : name of the best model, from ModelSelector.champion
+    out_path       : file to write the report to (default "results.txt")
     """
-    raise NotImplementedError
+    lines = [
+        "\n=== Cross-Validation Results ===",
+        scores_table.to_string(index=False),
+        f"\n=== Champion Model: {champion} ===",
+        "\n=== Final Validation Metrics ===",
+        *(f"  {k}: {v:.4f}" for k, v in final_metrics.items()),
+    ]
+    summary = "\n".join(lines)
+
+    print(summary)
+    with open(out_path, "w") as f:
+        f.write(summary + "\n")
 
 
 def main() -> None:
@@ -70,36 +96,32 @@ def main() -> None:
     parser.add_argument("--train", default=TRAIN_PATH, help="Path to training CSV")
     args = parser.parse_args()
 
-    try:
-        # 1. Load
-        raw = load_data(args.train)
+    # 1. Load
+    raw = load_data(args.train)
 
-        # 2. Split raw data
-        raw_train, raw_val = train_test_split(
-            raw, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=raw["Churn"]
-        )
+    # 2. Split raw data
+    raw_train, raw_val = train_test_split(
+        raw, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=raw["Churn"]
+    )
 
-        # 3. Clean — fit on train, apply the same state to val
-        cleaner = DataCleaner()
-        X_train, y_train = cleaner.fit_transform(raw_train)
-        X_val, y_val = cleaner.transform(raw_val)
+    # 3. Clean — fit on train, apply the same state to val
+    cleaner = DataCleaner()
+    X_train, y_train = cleaner.fit_transform(raw_train)
+    X_val, y_val = cleaner.transform(raw_val)
 
-        # 4. Select best model via cross-validation
-        selector = ModelSelector()
-        scores_table = selector.evaluate_all(X_train, y_train)
+    # 4. Select best model via cross-validation
+    selector = ModelSelector()
+    scores_table = selector.evaluate_all(X_train, y_train)
 
-        # 5. Refit best pipeline on full training split
-        best_pipeline = selector.best()
-        best_pipeline.fit(X_train, y_train)
+    # 5. Refit best pipeline on full training split
+    best_pipeline = selector.best()
+    best_pipeline.fit(X_train, y_train)
 
-        # 6. Final evaluation on held-out validation set
-        final_metrics = evaluate(best_pipeline, X_val, y_val)
+    # 6. Final evaluation on held-out validation set
+    final_metrics = evaluate(best_pipeline, X_val, y_val)
 
-        # 7. Print report
-        report(scores_table, final_metrics)
-
-    except NotImplementedError:
-        print("Pipeline not yet implemented — stub scaffolding only.")
+    # 7. Print report
+    report(scores_table, final_metrics, selector.champion)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_validate
+from sklearn.model_selection import cross_validate
 from sklearn.pipeline import Pipeline
 
 from preprocessor import build_pipeline
@@ -86,8 +87,20 @@ class ModelSelector:
             .sort_values("roc_auc_mean", ascending=False)
             .reset_index(drop=True)
         )
-        self._champion = scores.iloc[0]["model"]
+        self._champion = str(scores.loc[0, "model"])
         return scores
+
+    @property
+    def champion(self) -> str:
+        """Name of the highest-scoring model from evaluate_all().
+
+        Raises
+        ------
+        RuntimeError if evaluate_all() has not been called yet.
+        """
+        if self._champion is None:
+            raise RuntimeError("Call evaluate_all() before champion.")
+        return self._champion
 
     def best(self) -> Pipeline:
         """Return an unfitted pipeline for the highest-scoring model.
