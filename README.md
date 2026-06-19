@@ -1,4 +1,6 @@
-Your Goal: Predict the likelihood of customer churn.
+This is a Kaggle problem: https://www.kaggle.com/competitions/playground-series-s6e3/overview
+
+Goal: Predict the likelihood of customer churn.
 
 ## Project Structure
 
