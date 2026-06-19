@@ -22,43 +22,25 @@ class ModelSelector:
     pipeline.fit(X_train, y_train)
     """
 
+    # Registry of candidate models — three distinct algorithmic families.
+    # Keys are display names; values are unfitted estimator instances.
+    CANDIDATES: dict[str, object] = {
+        # Family 1 — Linear: draws a straight decision boundary.
+        "LogisticRegression": LogisticRegression(
+            class_weight="balanced", max_iter=1000, random_state=42
+        ),
+        # Family 2 — Bagging: builds many independent trees and averages votes.
+        "RandomForest": RandomForestClassifier(
+            class_weight="balanced", n_estimators=200, random_state=42, n_jobs=-1
+        ),
+        # Family 3 — Boosting: builds trees sequentially, each fixing the last.
+        "GradientBoosting": GradientBoostingClassifier(
+            n_estimators=200, random_state=42
+        ),
+    }
+
     def __init__(self) -> None:
-        self._best_name: str | None = None
-        self._candidates: dict[str, object] | None = None
-
-    def _build_candidates(self, y: pd.Series) -> dict[str, object]:
-        """Build the candidate dict, computing class-imbalance weights from y.
-
-        Three distinct algorithmic families (satisfies Part B requirement):
-          1. LogisticRegression — linear family
-          2. RandomForest       — bagging (parallel tree ensemble)
-          3. GradientBoosting   — boosting (sequential tree ensemble)
-        """
-        neg, pos = (y == 0).sum(), (y == 1).sum()
-
-        return {
-            # Family 1 — Linear
-            # class_weight='balanced' auto up-weights the minority churn class.
-            "LogisticRegression": LogisticRegression(
-                class_weight="balanced",
-                max_iter=1000,
-                random_state=42,
-            ),
-            # Family 2 — Bagging (parallel trees)
-            # Builds many independent trees and averages their votes.
-            "RandomForest": RandomForestClassifier(
-                class_weight="balanced",
-                n_estimators=200,
-                random_state=42,
-                n_jobs=-1,
-            ),
-            # Family 3 — Boosting (sequential trees)
-            # Builds trees one at a time, each correcting the previous one's errors.
-            "GradientBoosting": GradientBoostingClassifier(
-                n_estimators=200,
-                random_state=42,
-            ),
-        }
+        self._champion: str | None = None
 
     def evaluate_all(self, X: pd.DataFrame, y: pd.Series, cv: int = 5) -> pd.DataFrame:
         """Cross-validate every candidate and return a scores table.
@@ -80,10 +62,9 @@ class ModelSelector:
             model, roc_auc_mean, roc_auc_std, f1_mean, f1_std
         sorted by roc_auc_mean descending.
         """
-        self._candidates = self._build_candidates(y)
         rows = []
 
-        for name, model in self._candidates.items():
+        for name, model in self.CANDIDATES.items():
             print(f"  [{name}] running {cv}-fold CV...", flush=True)
 
             # clone() gives cross_validate a fresh unfitted copy each fold
@@ -106,7 +87,7 @@ class ModelSelector:
             .sort_values("roc_auc_mean", ascending=False)
             .reset_index(drop=True)
         )
-        self._best_name = scores.iloc[0]["model"]
+        self._champion = scores.iloc[0]["model"]
         return scores
 
     def best(self) -> Pipeline:
@@ -122,7 +103,7 @@ class ModelSelector:
         ------
         RuntimeError if evaluate_all() has not been called yet.
         """
-        if self._best_name is None:
+        if self._champion is None:
             raise RuntimeError("Call evaluate_all() before best().")
 
-        return build_pipeline(self._candidates[self._best_name])
+        return build_pipeline(self.CANDIDATES[self._champion])
