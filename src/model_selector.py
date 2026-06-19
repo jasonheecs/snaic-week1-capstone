@@ -4,8 +4,9 @@ import pandas as pd
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_validate
+from sklearn.model_selection import cross_validate
 from sklearn.pipeline import Pipeline
-
+from xgboost import XGBClassifier
 from preprocessor import build_pipeline
 
 
@@ -21,7 +22,8 @@ class ModelSelector:
     pipeline.fit(X_train, y_train)
     """
 
-    # Registry of candidate models — three distinct algorithmic families.
+    # Registry of candidate models — four candidates spanning linear, bagging,
+    # and boosting families (two boosting implementations).
     # Keys are display names; values are unfitted estimator instances.
     CANDIDATES: dict[str, object] = {
         # Family 1 — Linear: draws a straight decision boundary.
@@ -35,6 +37,13 @@ class ModelSelector:
         # Family 3 — Boosting: builds trees sequentially, each fixing the last.
         "GradientBoosting": GradientBoostingClassifier(
             n_estimators=200, random_state=42
+        ),
+        # Family 3 (alt) — Boosting (histogram-based)
+        "XGBoost": XGBClassifier(
+            n_estimators=200,
+            random_state=42,
+            eval_metric="logloss",
+            n_jobs=-1,
         ),
     }
 
@@ -86,8 +95,20 @@ class ModelSelector:
             .sort_values("roc_auc_mean", ascending=False)
             .reset_index(drop=True)
         )
-        self._champion = scores.iloc[0]["model"]
+        self._champion = str(scores.loc[0, "model"])
         return scores
+
+    @property
+    def champion(self) -> str:
+        """Name of the highest-scoring model from evaluate_all().
+
+        Raises
+        ------
+        RuntimeError if evaluate_all() has not been called yet.
+        """
+        if self._champion is None:
+            raise RuntimeError("Call evaluate_all() before champion.")
+        return self._champion
 
     def best(self) -> Pipeline:
         """Return an unfitted pipeline for the highest-scoring model.
