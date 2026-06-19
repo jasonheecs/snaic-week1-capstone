@@ -68,7 +68,7 @@ class ModelSelector:
 
             # clone() gives cross_validate a fresh unfitted copy each fold
             cv_results = cross_validate(
-                build_pipeline(clone(model)), X, y,
+                build_pipeline(model), X, y,
                 cv=cv,
                 scoring=["roc_auc", "f1"],
             )
