@@ -33,3 +33,5 @@ python -m pytest tests/              # run the full suite
 python -m pytest tests/ -v           # verbose: one line per test
 python -m pytest tests/test_preprocessor.py   # a single test file
 ```
+
+hello world
