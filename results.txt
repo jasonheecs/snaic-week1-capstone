@@ -1,12 +1,13 @@
 
 === Cross-Validation Results ===
              model  roc_auc_mean  roc_auc_std  f1_mean  f1_std
+           XGBoost        0.9147       0.0006   0.6754  0.0019
   GradientBoosting        0.9143       0.0005   0.6724  0.0027
 LogisticRegression        0.9077       0.0005   0.6724  0.0007
       RandomForest        0.8965       0.0011   0.6301  0.0035
 
-=== Champion Model: GradientBoosting ===
+=== Champion Model: XGBoost ===
 
 === Final Validation Metrics ===
-  roc_auc: 0.9149
-  f1: 0.6709
+  roc_auc: 0.9157
+  f1: 0.6758
