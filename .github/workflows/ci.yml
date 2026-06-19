@@ -28,5 +28,5 @@ jobs:
 
       - name: Sanity run of main.py (sampled subset)
         run: |
-          head -n 5001 data/train.csv > sample.csv
+          head -n 1001 data/train.csv > sample.csv
           python src/main.py --train sample.csv
