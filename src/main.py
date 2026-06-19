@@ -74,14 +74,15 @@ def main() -> None:
         # 1. Load
         raw = load_data(args.train)
 
-        # 2. Clean
-        cleaner = DataCleaner()
-        X, y = cleaner.fit_transform(raw)
-
-        # 3. Split
-        X_train, X_val, y_train, y_val = train_test_split(
-            X, y, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=y
+        # 2. Split raw data
+        raw_train, raw_val = train_test_split(
+            raw, test_size=TEST_SIZE, random_state=RANDOM_STATE, stratify=raw["Churn"]
         )
+
+        # 3. Clean — fit on train, apply the same state to val
+        cleaner = DataCleaner()
+        X_train, y_train = cleaner.fit_transform(raw_train)
+        X_val, y_val = cleaner.transform(raw_val)
 
         # 4. Select best model via cross-validation
         selector = ModelSelector()
