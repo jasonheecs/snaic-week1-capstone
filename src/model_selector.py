@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pandas as pd
-from sklearn.base import clone
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_validate
