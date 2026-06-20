@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import pandas as pd
+from sklearn.base import BaseEstimator
 from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import cross_validate
 from sklearn.model_selection import cross_validate
 from sklearn.pipeline import Pipeline
 from xgboost import XGBClassifier
@@ -25,7 +25,7 @@ class ModelSelector:
     # Registry of candidate models — four candidates spanning linear, bagging,
     # and boosting families (two boosting implementations).
     # Keys are display names; values are unfitted estimator instances.
-    CANDIDATES: dict[str, object] = {
+    CANDIDATES: dict[str, BaseEstimator] = {
         # Family 1 — Linear: draws a straight decision boundary.
         "LogisticRegression": LogisticRegression(
             class_weight="balanced", max_iter=1000, random_state=42
