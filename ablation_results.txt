@@ -1,0 +1,36 @@
+
+=== Ablation Study  (Champion: XGBoost,  5-fold CV on training set) ===
+Baseline (all features):  ROC-AUC 0.9146 +/- 0.0006 | F1 0.6747 +/- 0.0018
+
+                                       experiment  dropped  added  roc_auc_mean  roc_auc_std  f1_mean  f1_std   d_auc
+                          baseline (all features)        0      0        0.9146       0.0006   0.6747  0.0018  0.0000
+                       drop gender + PhoneService        2      0        0.9147       0.0006   0.6755  0.0019  0.0002
+                                drop TotalCharges        1      0        0.9119       0.0004   0.6687  0.0010 -0.0026
+                  collapse add-ons -> HasInternet        6      1        0.9137       0.0005   0.6726  0.0024 -0.0008
+lean combo (gender + PhoneService + TotalCharges)        3      0        0.9120       0.0004   0.6694  0.0011 -0.0025
+
+=== Ablation Log (Part C deliverable) ===
+
+[1] drop gender + PhoneService
+    Hypothesis        : gender (Cramer's V 0.007) and PhoneService (0.035) carry ~no churn signal, so dropping them should not lower CV AUC and yields a simpler model.
+    Controlled change : drop ['gender', 'PhoneService']
+    CV impact         : ROC-AUC 0.9147 +/- 0.0006 (delta +0.0002) | F1 0.6755 +/- 0.0019
+    Conclusion        : No significant change vs baseline - safe to drop for a simpler model.
+
+[2] drop TotalCharges
+    Hypothesis        : TotalCharges is ~ tenure x MonthlyCharges (r~0.85); removing the redundant numeric should leave CV AUC roughly unchanged.
+    Controlled change : drop ['TotalCharges']
+    CV impact         : ROC-AUC 0.9119 +/- 0.0004 (delta -0.0026) | F1 0.6687 +/- 0.0010
+    Conclusion        : Lowers ROC-AUC - keep these features.
+
+[3] collapse add-ons -> HasInternet
+    Hypothesis        : The six internet add-ons are structurally locked to InternetService; one HasInternet flag should keep the signal with far fewer columns.
+    Controlled change : add ['HasInternet']; drop ['OnlineSecurity', 'OnlineBackup', 'DeviceProtection', 'TechSupport', 'StreamingTV', 'StreamingMovies']
+    CV impact         : ROC-AUC 0.9137 +/- 0.0005 (delta -0.0008) | F1 0.6726 +/- 0.0024
+    Conclusion        : Lowers ROC-AUC - keep these features.
+
+[4] lean combo (gender + PhoneService + TotalCharges)
+    Hypothesis        : Dropping all low-value/redundant features at once should give a leaner model with CV AUC on par with the baseline.
+    Controlled change : drop ['gender', 'PhoneService', 'TotalCharges']
+    CV impact         : ROC-AUC 0.9120 +/- 0.0004 (delta -0.0025) | F1 0.6694 +/- 0.0011
+    Conclusion        : Lowers ROC-AUC - keep these features.

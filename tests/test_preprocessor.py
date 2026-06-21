@@ -153,3 +153,52 @@ def test_unlisted_columns_are_dropped(features):
 
     # Assert
     assert transformed.shape[1] == expected_feature_count(features)
+
+
+# --- ablation support: drop_cols / engineer ---------------------------------
+def test_drop_cols_removes_columns_from_routing_and_output(features):
+    """drop_cols excludes the named columns from their encoder group and the output."""
+    # Arrange — drop one binary and one numeric column.
+    pipeline = build_pipeline(LogisticRegression(), drop_cols=["gender", "TotalCharges"])
+    preprocessor = pipeline.named_steps["preprocessor"]
+    routing = {name: cols for name, _, cols in preprocessor.transformers}  # type: ignore[attr-defined]
+
+    # Assert — dropped columns are gone from routing, others untouched.
+    assert "gender" not in routing["ord"]
+    assert "TotalCharges" not in routing["scl"]
+    assert routing["ohe"] == MULTI_CLASS_COLS  # multi-class group unaffected
+    # No engineering requested, so the pipeline stays the plain two-step form.
+    assert [name for name, _ in pipeline.steps] == ["preprocessor", "model"]
+
+    # Act — two fewer output columns (one ordinal + one numeric dropped).
+    transformed = densify(preprocessor.fit_transform(features))
+    assert transformed.shape[1] == expected_feature_count(features) - 2
+
+
+def test_engineer_adds_step_routes_feature_and_fits(features):
+    """engineer prepends a step, routes the new feature, and the pipeline fits end-to-end."""
+    # Arrange
+    pipeline = build_pipeline(LogisticRegression(), engineer=["HasInternet"])
+
+    # Assert — an extra "engineer" step is prepended and the feature is routed
+    # to the ordinal block per the ENGINEERED registry.
+    assert [name for name, _ in pipeline.steps] == ["engineer", "preprocessor", "model"]
+    routing = {name: cols for name, _, cols in pipeline.named_steps["preprocessor"].transformers}  # type: ignore[attr-defined]
+    assert "HasInternet" in routing["ord"]
+
+    # Act/Assert — fitting flows engineer -> preprocessor -> model without error,
+    # proving HasInternet is created before the ColumnTransformer needs it.
+    y = [i % 2 for i in range(len(features))]
+    pipeline.fit(features, y)
+
+
+def test_apply_engineering_adds_columns_without_mutating(features):
+    """The engineering helper returns new columns and never mutates the caller's frame."""
+    from preprocessor import _apply_engineering
+
+    out = _apply_engineering(features, ["HasInternet", "ChargesPerMonth"])
+
+    assert {"HasInternet", "ChargesPerMonth"} <= set(out.columns)
+    # Original frame is untouched (we worked on a copy).
+    assert "HasInternet" not in features.columns
+    assert "ChargesPerMonth" not in features.columns
